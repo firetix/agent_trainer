@@ -26,14 +26,26 @@ class SDRTrainer:
         st.subheader('SDR training')
         st.write('This is a simple web app that allows you to train your SDRs')
 
-        name_of_client = st.text_input(label='What name of the person you want to call?', value='Superman')
-        job_title = st.text_input(label='What is the job title of the person you are selling to?', value='Director of Procreation at CVS')
-        rudeness = st.number_input(label='What the rudness level desired?', value=0.5)
+        name_of_client = st.text_input(label='What name of the person you want to call?', value='Alex PeterSon')
+        job_title = st.text_input(label='What is the job title of the person you are selling to?', value='Director of Human Resources at CyberTech Solutions')
+        rudeness = st.number_input(label='What the rudness level desired?', value=5)
         phone_number = st.number_input(value=None, label='What is your phone number?')
-        
-        
+        option = st.selectbox("template selection",("Alex PeterSon", "Custom"))
+        if option == "Custom":
+            with open("local_setup/agent_prompt.txt", 'r') as agent_prompt:
+                agent_prompt_txt = agent_prompt.read()
+                agent_prompt_template = Template(agent_prompt_txt)
+                prompt_final = agent_prompt_template.render(name=name_of_client, job_title=job_title, rudeness=rudeness, geo="New York")
+                
+        else:
+            with open("local_setup/sdr_prompt.txt", 'r') as agent_prompt:
+                agent_prompt_txt = agent_prompt.read()
+                sdr_prompt_template = Template(agent_prompt_txt)
+                prompt_final = sdr_prompt_template.render(name=name_of_client, job_title=job_title, rudeness=rudeness, geo="New York")
+        print(prompt_final)
         template = Template(self.config.payload_assistant_template)
-        json_data = template.render(name=name_of_client, job_title=job_title, rudeness=rudeness, geo="New York")
+        json_data = template.render(name=name_of_client, job_title=job_title, rudeness=rudeness, geo="New York" , sdr_prompt_final=prompt_final)
+        print(json_data)
         submit = st.button('Call')
         if submit:
             response = requests.post(self.config.url,
