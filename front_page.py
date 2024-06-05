@@ -27,7 +27,7 @@ class SDRTrainer:
         st.write('This is a simple web app that allows you to train your SDRs')
 
         name_of_client = st.text_input(label='What name of the person you want to call?', value='Superman')
-        job_title = st.text_input(label='What is the job title of the person you are selling to?', value='Director of Pharmacy at CVS')
+        job_title = st.text_input(label='What is the job title of the person you are selling to?', value='Director of Procreation at CVS')
         rudeness = st.number_input(label='What the rudness level desired?', value=0.5)
         phone_number = st.number_input(value=None, label='What is your phone number?')
         
@@ -69,7 +69,7 @@ class SDRConfig:
         self.payload_call_file = payload_call_file
         self.payload_assistant_template = SDRConfig.load_payload(payload_file)
         self.payload_call_template = SDRConfig.load_payload(payload_call_file)
-        self.api_key = st.secrets["db_username"]
+        self.api_key = st.secrets["vapi_api_key"]
 
     def load_payload(payload_file):
         with open(payload_file, 'r') as file:
