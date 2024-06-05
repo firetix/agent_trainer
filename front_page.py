@@ -22,26 +22,6 @@ class SDRTrainer:
         self.headers = {"Authorization": f"Bearer {self.config.api_key}",
                         "Content-Type": "application/json"}
 
-    # def post_agent(self, phone_number, agent_id):
-    #     response = requests.post(self.config.call_url, json=self.config.json_file, headers=self.headers)
-    #     if response.status_code == 200:
-    #         st.write('Post successful call')
-    #         call_payload = {
-    #             "recipient_phone_number": phone_number,
-    #             "agent_id": agent_id
-    #         }
-    #         response = requests.post(self.config.call_url, json=call_payload, headers=self.headers)  # Make a call using the agent ID
-    #         if response.status_code == 200:
-    #             st.write('Call successful')
-    #         else:
-    #             st.write('Call failed')
-    #             print(f'Status code: {response.status_code}')
-    #             print(f'Error: {response.text}')
-    #     else:
-    #         st.write('Post failed')
-    #         print(f'Status code: {response.status_code}')
-    #         print(f'Error: {response.text}')
-
     def train_sdrs(self):
         st.subheader('SDR training')
         st.write('This is a simple web app that allows you to train your SDRs')
@@ -87,10 +67,9 @@ class SDRConfig:
         self.call_url = call_url
         self.payload_file = payload_file
         self.payload_call_file = payload_call_file
-        self.assistant_id = "f4f8dc10-2b06-4a6d-bfbe-15ac66e3005d"
         self.payload_assistant_template = SDRConfig.load_payload(payload_file)
         self.payload_call_template = SDRConfig.load_payload(payload_call_file)
-        self.api_key = "01644691-33bc-44e0-8778-4d369d4d7a5b"
+        self.api_key = st.secrets["db_username"]
 
     def load_payload(payload_file):
         with open(payload_file, 'r') as file:
