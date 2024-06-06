@@ -30,19 +30,15 @@ class SDRTrainer:
         name_of_client = st.text_input(
             label="Name your AI?", value="Alex PeterSon"
         )
-        job_title = st.text_input(
-            label="What job title does the AI have?",
-            value="Director of Human Resources",
-        )
         rudeness = st.number_input(label="Rudness level of this AI?", value=5)
         phone_number = st.number_input(value=None, label="Your phone number?")
         option = st.selectbox(
-            "Agent type selection",
+            "Who is the AI ?",
             ("Director of human resource", "Director of sales", "Sales Coach"),
         )
-        prompt_final = self.get_prompt_final(option, name_of_client, job_title, rudeness)
+        prompt_final = self.get_prompt_final(option, name_of_client, rudeness)
         print(prompt_final)
-        json_data = self.get_json_data(name_of_client, job_title, rudeness, prompt_final)
+        json_data = self.get_json_data(name_of_client, rudeness, prompt_final)
         print(json_data)
         submit = st.button("Call me NOW!")
         if submit:
@@ -72,34 +68,32 @@ class SDRTrainer:
                 print(f"Status code: {response.status_code}")
                 print(f"Error: {response.text}")
                 
-    def open_file_and_render_template(file_path, name_of_client, job_title, rudeness):
+    def open_file_and_render_template(file_path, name_of_client, rudeness):
         with open(file_path, "r") as agent_prompt:
             agent_prompt_txt = agent_prompt.read()
             agent_prompt_template = Template(agent_prompt_txt)
             prompt_final = agent_prompt_template.render(
                 name=name_of_client,
-                job_title=job_title,
                 rudeness=rudeness,
                 geo="New York",
             )
         return prompt_final
     
-    def get_prompt_final(self, option, name_of_client, job_title, rudeness):
+    def get_prompt_final(self, option, name_of_client, rudeness):
 
         if option == "Sales Coach":
-            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/agent_prompt.txt", name_of_client, job_title, rudeness)
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/agent_prompt.txt", name_of_client, rudeness)
         elif option == "Director of human resource":
-            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_hr_prompt.txt", name_of_client, job_title, rudeness)
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_hr_prompt.txt", name_of_client, rudeness)
         else:
-            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_sales_prompt.txt", name_of_client, job_title, rudeness)
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_sales_prompt.txt", name_of_client, rudeness)
 
         return prompt_final
 
-    def get_json_data(self, name_of_client, job_title, rudeness, prompt_final):
+    def get_json_data(self, name_of_client, rudeness, prompt_final):
         template = Template(self.config.payload_assistant_template)
         json_data = template.render(
             name=name_of_client,
-            job_title=job_title,
             rudeness=rudeness,
             geo="New York",
             sdr_prompt_final=prompt_final,
