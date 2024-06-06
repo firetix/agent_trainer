@@ -4,6 +4,7 @@ import json
 import logging
 import requests
 from jinja2 import Template
+import time 
 
 # Configure logging
 logging.basicConfig(
@@ -22,6 +23,18 @@ class SDRTrainer:
             "Authorization": f"Bearer {self.config.api_key}",
             "Content-Type": "application/json",
         }
+        
+    def poll_until_ended(call_id, headers):
+        url = f"https://api.vapi.ai/call/{call_id}"
+        while True:
+            response = requests.request("GET", url, headers=headers)
+            if response.status_code == 200:
+                response_data = response.json()
+                if response_data["status"] == "ended":
+                    return response_data
+            else:
+                print(f'Error: {response.status_code}')
+            time.sleep(5)  # Wait for 5 seconds before making the next request
 
     def train_sdrs(self):
         st.subheader("Talk to AI")
@@ -31,7 +44,7 @@ class SDRTrainer:
             label="Name your AI?", value="Alex PeterSon"
         )
         rudeness = st.number_input(label="Rudness level of this AI?", value=5)
-        phone_number = st.number_input(value=None, label="Your phone number?")
+        phone_number = st.number_input(value=1234567890, label="Your phone number? ")
         option = st.selectbox(
             "Who is the AI ?",
             ("Director of human resource", "Director of sales", "Sales Coach"),
@@ -40,8 +53,12 @@ class SDRTrainer:
         print(prompt_final)
         json_data = self.get_json_data(name_of_client, rudeness, prompt_final)
         print(json_data)
+        st.divider()
         submit = st.button("Call me NOW!")
         if submit:
+            if not phone_number:
+                st.warning("Please enter a phone number")
+                return
             response = requests.post(
                 self.config.url, json=json.loads(json_data), headers=self.headers
             )
@@ -57,6 +74,12 @@ class SDRTrainer:
                 )
                 if response_call.status_code == 200 or response_call.status_code == 201:
                     st.write("Call successful")
+                    evaluation = SDRTrainer.poll_until_ended(response_call.json()["id"], self.headers)
+                    st.divider()
+                    st.title("Evaluation Summary")
+                    st.caption(evaluation["analysis"]["summary"])
+                    st.title("Specific Evaluation")
+                    st.caption(evaluation["analysis"]["successEvaluation"])
                 else:
                     st.write("Call failed")
                     print(f"Status code: {response_call.status_code}")
