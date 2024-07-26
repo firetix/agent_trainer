@@ -47,8 +47,9 @@ class SDRTrainer:
     async def train_sdrs(self):
         async with aiohttp.ClientSession() as session:
             tasks = []
-            st.subheader("RAG-n-DIAL")
-            st.write("Phone call confgiuration")
+            st.subheader("AI-ssistance Line")
+            st.write("Real time AI assistant for your sales team")
+            
 
             name_of_client = st.text_input(
                 label="Name your AI?", value="Simo Rachidi"
@@ -70,7 +71,7 @@ class SDRTrainer:
             sales_script_caption = st.caption("")
             
             rudeness = st.number_input(label="Rudness level of this AI?", value=5)
-            st.caption("Rudeness level should be between 1 to 10. if the rudness is at 0 then be very nice, if the rudness is 10 then you act like you don't have time and are not interested")
+            st.caption("Rudeness level should be between 1 to 10. if the rudness is at 0 then the AI will be very nice and impatient, if the rudness is 10 then the AI will act like he doesn't have time and are not interested")
             phone_number = st.number_input(value=1234567890, label="Where should the AI call you?")
             prompt_final = self.get_prompt_final(option, name_of_client, rudeness)
             evaluation_prompt = self.get_prompt_final(option_sales_script, name_of_client, rudeness)
@@ -101,9 +102,9 @@ class SDRTrainer:
                     placeholder = st.empty()
                     for task in asyncio.as_completed(tasks):
                         response_call = await task
-                        placeholder.write(f"Received data: {response_call}")
+                        
                         evaluation = SDRTrainer.poll_until_ended(response_call["id"], self.headers)
-                        # print(evaluation)
+                        print(evaluation)
                         st.divider()
                         st.title("Evaluation Summary")
                         if "analysis" in evaluation:
