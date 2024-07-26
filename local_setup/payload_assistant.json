@@ -1,6 +1,6 @@
 {
     "analysisPlan": {
-        "successEvaluationRubric": "AutomaticRubric",
+        "successEvaluationRubric": "Checklist",
         "successEvaluationPrompt": "{{ evaluation_prompt }}"
     },
     "backgroundSound": "office",
@@ -8,8 +8,8 @@
         "bye for now",
         "talk soon"
     ],
-    "endCallMessage": "Thanks for reaching out to SmartHome Innovations. It was great assisting you. Have a wonderful day!",
-    "voicemailMessage": "Hi, you've reached Leo at SmartHome Innovations. Sorry I missed your call. Please leave a message, and I'll get back to you as soon as possible.",
+    "endCallMessage": "Thanks for reaching out.",
+    "voicemailMessage": "Hi, you've reached  {{ name }}. Sorry I missed your call. Please leave a message, and I'll get back to you as soon as possible.",
     "firstMessage": "Hi there! I'm {{ name }}, Why are you calling me today?",
     "transcriber": {
         "model": "nova-2",

@@ -51,28 +51,38 @@ class SDRTrainer:
             st.write("Phone call confgiuration")
 
             name_of_client = st.text_input(
-                label="Name your AI?", value="Alex PeterSon"
+                label="Name your AI?", value="Simo Rachidi"
             )
-            rudeness = st.number_input(label="Rudness level of this AI?", value=5)
+            
             
             option = st.selectbox(
                 "What profession does he have?",
                 ("Sales Coach", "Director of human resource", "Director of sales"),
             )
+            profession_caption = st.caption("")
+            
+            
             option_sales_script = st.selectbox(
                 "What sales script do you want to follow?",
-                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls", "Follow Up Script for Voicemail"),
+                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls"),
             )
+            st.caption("""This describe to the agent how to evaluate your call for example.""")
+            sales_script_caption = st.caption("")
+            
+            rudeness = st.number_input(label="Rudness level of this AI?", value=5)
+            st.caption("Rudeness level should be between 1 to 10. if the rudness is at 0 then be very nice, if the rudness is 10 then you act like you don't have time and are not interested")
             phone_number = st.number_input(value=1234567890, label="Where should the AI call you?")
             prompt_final = self.get_prompt_final(option, name_of_client, rudeness)
             evaluation_prompt = self.get_prompt_final(option_sales_script, name_of_client, rudeness)
+            sales_script_caption.caption(evaluation_prompt)
+            profession_caption.caption(prompt_final)
             print(evaluation_prompt)
             json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt)
             print(json_data)
             st.divider()
             submit = st.button("Call me NOW!")
             if submit:
-                if not phone_number:
+                if not phone_number or phone_number == 1234567890:
                     st.warning("Please enter a phone number")
                     return
                 
@@ -93,13 +103,14 @@ class SDRTrainer:
                         response_call = await task
                         placeholder.write(f"Received data: {response_call}")
                         evaluation = SDRTrainer.poll_until_ended(response_call["id"], self.headers)
-                        print(evaluation)
+                        # print(evaluation)
                         st.divider()
                         st.title("Evaluation Summary")
-                        st.caption(evaluation["analysis"]["summary"])
-                        st.title("Specific Evaluation")
-                        if "successEvaluation" in evaluation["analysis"]:
-                            st.caption(evaluation["analysis"]["successEvaluation"])
+                        if "analysis" in evaluation:
+                            st.caption(evaluation["analysis"]["summary"])
+                            st.title("Specific Evaluation")
+                            if "successEvaluation" in evaluation["analysis"]:
+                                st.caption(evaluation["analysis"]["successEvaluation"])
                     
                 else:
                     st.write("Post failed")
