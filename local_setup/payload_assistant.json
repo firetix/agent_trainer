@@ -1,7 +1,7 @@
 {
     "analysisPlan": {
         "successEvaluationRubric": "AutomaticRubric",
-        "successEvaluationPrompt": "You are an expert call evaluator. You will be provided with a transcript of a call and the system prompt of the AI participant. Your task is to determine if the call was successful based on the objectives inferred from the system prompt.\n\nEvaluation Criteria:\n\nEffective Openers (did_have_openers): Did the caller start the conversation with a good opening line or an effective way to begin the conversation?\nProblem Identification (did_identify_pb): Was the caller able to correctly identify the customer's problems or opportunities?\nObjection Handling (did_handle_objections): Did the caller handle the customer's objections effectively?\nFollow-Up (did_follow_up): Did the caller follow up appropriately with the customer?\nPlease assess the call based on these criteria."
+        "successEvaluationPrompt": "{{ evaluation_prompt }}"
     },
     "backgroundSound": "office",
     "endCallPhrases": [

@@ -5,6 +5,8 @@ import logging
 import requests
 from jinja2 import Template
 import time 
+import asyncio
+import aiohttp
 
 # Configure logging
 logging.basicConfig(
@@ -16,6 +18,10 @@ logger = logging.getLogger("requests")
 logger.setLevel(logging.DEBUG)
 
 
+async def post_data(session, url, payload=None, headers=None):
+    async with session.post(url, json=payload, headers=headers) as response:
+        return await response.json()
+    
 class SDRTrainer:
     def __init__(self, config):
         self.config = config
@@ -30,66 +36,75 @@ class SDRTrainer:
             response = requests.request("GET", url, headers=headers)
             if response.status_code == 200:
                 response_data = response.json()
-                if response_data["status"] == "ended":
+                if response_data["status"] == "ended" :
+                    if "ended_reason" in response_data and response_data["ended_reason"] != "unknown-error":
+                        continue
                     return response_data
             else:
                 print(f'Error: {response.status_code}')
             time.sleep(5)  # Wait for 5 seconds before making the next request
 
-    def train_sdrs(self):
-        st.subheader("Talk to AI")
-        st.write("Simulate a call to a potential customer")
+    async def train_sdrs(self):
+        async with aiohttp.ClientSession() as session:
+            tasks = []
+            st.subheader("RAG-n-DIAL")
+            st.write("Phone call confgiuration")
 
-        name_of_client = st.text_input(
-            label="Name your AI?", value="Alex PeterSon"
-        )
-        rudeness = st.number_input(label="Rudness level of this AI?", value=5)
-        phone_number = st.number_input(value=1234567890, label="Your phone number? ")
-        option = st.selectbox(
-            "Who is the AI ?",
-            ("Director of human resource", "Director of sales", "Sales Coach"),
-        )
-        prompt_final = self.get_prompt_final(option, name_of_client, rudeness)
-        print(prompt_final)
-        json_data = self.get_json_data(name_of_client, rudeness, prompt_final)
-        print(json_data)
-        st.divider()
-        submit = st.button("Call me NOW!")
-        if submit:
-            if not phone_number:
-                st.warning("Please enter a phone number")
-                return
-            response = requests.post(
-                self.config.url, json=json.loads(json_data), headers=self.headers
+            name_of_client = st.text_input(
+                label="Name your AI?", value="Alex PeterSon"
             )
-            if response.status_code == 201 or response.status_code == 200:
-                print(response.json())
-                print(response.json()["id"])
-                payload_call = self.get_payload_call(response.json()["id"], phone_number)
-                print(payload_call)
-                response_call = requests.post(
-                    self.config.call_url,
-                    json=json.loads(payload_call),
-                    headers=self.headers,
+            rudeness = st.number_input(label="Rudness level of this AI?", value=5)
+            
+            option = st.selectbox(
+                "What profession does he have?",
+                ("Sales Coach", "Director of human resource", "Director of sales"),
+            )
+            option_sales_script = st.selectbox(
+                "What sales script do you want to follow?",
+                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls", "Follow Up Script for Voicemail"),
+            )
+            phone_number = st.number_input(value=1234567890, label="Where should the AI call you?")
+            prompt_final = self.get_prompt_final(option, name_of_client, rudeness)
+            evaluation_prompt = self.get_prompt_final(option_sales_script, name_of_client, rudeness)
+            print(evaluation_prompt)
+            json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt)
+            print(json_data)
+            st.divider()
+            submit = st.button("Call me NOW!")
+            if submit:
+                if not phone_number:
+                    st.warning("Please enter a phone number")
+                    return
+                
+                response = requests.post(
+                    self.config.url, json=json.loads(json_data), headers=self.headers
                 )
-                if response_call.status_code == 200 or response_call.status_code == 201:
-                    st.write("Call successful")
-                    evaluation = SDRTrainer.poll_until_ended(response_call.json()["id"], self.headers)
-                    st.divider()
-                    st.title("Evaluation Summary")
-                    st.caption(evaluation["analysis"]["summary"])
-                    st.title("Specific Evaluation")
-                    st.caption(evaluation["analysis"]["successEvaluation"])
-                else:
-                    st.write("Call failed")
-                    print(f"Status code: {response_call.status_code}")
-                    print(f"Error: {response_call.text}")
+                
+                if response.status_code == 201 or response.status_code == 200:
+                    # print(response.json())
+                    # print(response.json()["id"])
+                    payload_call = self.get_payload_call(response.json()["id"], phone_number)
+                    print(payload_call)
 
-                st.write("Post successful")
-            else:
-                st.write("Post failed")
-                print(f"Status code: {response.status_code}")
-                print(f"Error: {response.text}")
+                    tasks.append(asyncio.ensure_future(post_data(session, self.config.call_url, json.loads(payload_call),self.headers)))
+                    st.write("Call successful")
+                    placeholder = st.empty()
+                    for task in asyncio.as_completed(tasks):
+                        response_call = await task
+                        placeholder.write(f"Received data: {response_call}")
+                        evaluation = SDRTrainer.poll_until_ended(response_call["id"], self.headers)
+                        print(evaluation)
+                        st.divider()
+                        st.title("Evaluation Summary")
+                        st.caption(evaluation["analysis"]["summary"])
+                        st.title("Specific Evaluation")
+                        if "successEvaluation" in evaluation["analysis"]:
+                            st.caption(evaluation["analysis"]["successEvaluation"])
+                    
+                else:
+                    st.write("Post failed")
+                    print(f"Status code: {response.status_code}")
+                    print(f"Error: {response.text}")
                 
     def open_file_and_render_template(file_path, name_of_client, rudeness):
         with open(file_path, "r") as agent_prompt:
@@ -108,18 +123,23 @@ class SDRTrainer:
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/agent_prompt.txt", name_of_client, rudeness)
         elif option == "Director of human resource":
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_hr_prompt.txt", name_of_client, rudeness)
+        elif option == "Cold Call Script for Phone Calls":
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/sales_scripts/cold_call_script_phone_call.txt", name_of_client, rudeness)
+        elif option == "Follow Up Script for Phone Calls":
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/sales_scripts/follow_up_script_phone_call.txt",  name_of_client, rudeness)
         else:
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_sales_prompt.txt", name_of_client, rudeness)
 
         return prompt_final
 
-    def get_json_data(self, name_of_client, rudeness, prompt_final):
+    def get_json_data(self, name_of_client, rudeness, prompt_final,evaluation_prompt):
         template = Template(self.config.payload_assistant_template)
         json_data = template.render(
             name=name_of_client,
             rudeness=rudeness,
             geo="New York",
             sdr_prompt_final=prompt_final,
+            evaluation_prompt=evaluation_prompt
         )
         return json_data
 
@@ -157,4 +177,4 @@ payload_file = "./local_setup/payload_assistant.json"
 config = SDRConfig(URL, CALL_URL, payload_file, payload_call_file)
 
 trainer = SDRTrainer(config)
-trainer.train_sdrs()
+asyncio.run(trainer.train_sdrs())
