@@ -58,14 +58,14 @@ class SDRTrainer:
             
             option = st.selectbox(
                 "What profession does he have?",
-                ("Sales Coach", "Director of human resource", "Director of sales"),
+                ("Sales Coach", "Incident assistant (Pager Duty)", "Director of human resource", "Director of sales"),
             )
             profession_caption = st.caption("")
             
             
             option_sales_script = st.selectbox(
                 "What sales script do you want to follow?",
-                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls"),
+                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls", "Incident script evaluator"),
             )
             st.caption("""This describe to the agent how to evaluate your call for example.""")
             sales_script_caption = st.caption("")
@@ -78,7 +78,7 @@ class SDRTrainer:
             sales_script_caption.caption(evaluation_prompt)
             profession_caption.caption(prompt_final)
             print(evaluation_prompt)
-            json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt)
+            json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt,  "There is one incident triggered, I'm here to assist you it, how may I help?")
             print(json_data)
             st.divider()
             submit = st.button("Call me NOW!")
@@ -130,7 +130,6 @@ class SDRTrainer:
         return prompt_final
     
     def get_prompt_final(self, option, name_of_client, rudeness):
-
         if option == "Sales Coach":
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/agent_prompt.txt", name_of_client, rudeness)
         elif option == "Director of human resource":
@@ -139,19 +138,25 @@ class SDRTrainer:
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/sales_scripts/cold_call_script_phone_call.txt", name_of_client, rudeness)
         elif option == "Follow Up Script for Phone Calls":
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/sales_scripts/follow_up_script_phone_call.txt",  name_of_client, rudeness)
+        elif option == "Incident script evaluator":
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/incident_script_evaluator.txt", name_of_client, rudeness)
+        elif option == "Incident assistant (Pager Duty)":
+            prompt_final = SDRTrainer.open_file_and_render_template("local_setup/incident_assistant_prompt.txt", name_of_client, rudeness)
         else:
             prompt_final = SDRTrainer.open_file_and_render_template("local_setup/director_sales_prompt.txt", name_of_client, rudeness)
 
         return prompt_final
 
-    def get_json_data(self, name_of_client, rudeness, prompt_final,evaluation_prompt):
+    def get_json_data(self, name_of_client, rudeness, prompt_final,evaluation_prompt, default_intro="Why are you calling me today?"):
+        incident_intro = "There is one incident triggered, I'm here to assist you it, how may I help?"
         template = Template(self.config.payload_assistant_template)
         json_data = template.render(
             name=name_of_client,
             rudeness=rudeness,
             geo="New York",
             sdr_prompt_final=prompt_final,
-            evaluation_prompt=evaluation_prompt
+            evaluation_prompt=evaluation_prompt,
+            intro=default_intro
         )
         return json_data
 

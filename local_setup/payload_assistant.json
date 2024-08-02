@@ -10,7 +10,7 @@
     ],
     "endCallMessage": "Thanks for reaching out.",
     "voicemailMessage": "Hi, you've reached  {{ name }}. Sorry I missed your call. Please leave a message, and I'll get back to you as soon as possible.",
-    "firstMessage": "Hi there! I'm {{ name }}, Why are you calling me today?",
+    "firstMessage": "Hi there! I'm {{ name }}, {{ intro }}?",
     "transcriber": {
         "model": "nova-2",
         "provider": "deepgram",
