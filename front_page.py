@@ -58,14 +58,14 @@ class SDRTrainer:
             
             option = st.selectbox(
                 "What profession does he have?",
-                ("Sales Coach", "Incident assistant (Pager Duty)", "Director of human resource", "Director of sales"),
+                ( "Incident assistant (Pager Duty)","Sales Coach", "Director of human resource", "Director of sales"),
             )
             profession_caption = st.caption("")
             
             
             option_sales_script = st.selectbox(
                 "What sales script do you want to follow?",
-                ("Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls", "Incident script evaluator"),
+                ("Incident script evaluator","Cold Call Script for Phone Calls", "Follow Up Script for Phone Calls"),
             )
             st.caption("""This describe to the agent how to evaluate your call for example.""")
             sales_script_caption = st.caption("")
