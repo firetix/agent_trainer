@@ -48,7 +48,7 @@ class SDRTrainer:
         async with aiohttp.ClientSession() as session:
             tasks = []
             st.subheader("AI-ssistance Line")
-            st.write("Real time AI assistant for your sales team")
+            st.write("Real time AI assistant for your Incident support (Pager Duty) and for Sales training")
             
 
             name_of_client = st.text_input(
@@ -78,7 +78,12 @@ class SDRTrainer:
             sales_script_caption.caption(evaluation_prompt)
             profession_caption.caption(prompt_final)
             print(evaluation_prompt)
-            json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt,  "There is one incident triggered, I'm here to assist you it, how may I help?")
+            if  "Incident" in option_sales_script:
+                intro_text = "There is one incident triggered, I'm here to assist you with it, how may I help?"
+                json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt,  intro_text)   
+            else:
+                json_data = self.get_json_data(name_of_client, rudeness, prompt_final,evaluation_prompt)   
+                
             print(json_data)
             st.divider()
             submit = st.button("Call me NOW!")
@@ -158,7 +163,14 @@ class SDRTrainer:
             evaluation_prompt=evaluation_prompt,
             intro=default_intro
         )
-        return json_data
+        # Parse the rendered data as JSON
+        try:
+            json_data = json.loads(json_data)
+        except Exception as e:
+            print(f"JSON decode error: {e}")
+            print("Rendered data:", json_data)
+            return None
+        return json.dumps(json_data)
 
     def get_payload_call(self, assistant_id, phone_number):
         template = Template(self.config.payload_call_template)

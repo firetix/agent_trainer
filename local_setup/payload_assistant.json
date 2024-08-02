@@ -1,7 +1,7 @@
 {
     "analysisPlan": {
         "successEvaluationRubric": "Checklist",
-        "successEvaluationPrompt": "{{ evaluation_prompt }}"
+        "successEvaluationPrompt": "{{ evaluation_prompt  }}"
     },
     "backgroundSound": "office",
     "endCallPhrases": [
